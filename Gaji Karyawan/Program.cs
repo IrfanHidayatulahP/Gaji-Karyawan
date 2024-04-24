@@ -6,6 +6,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using System.Data.Common;
+using System.Net.Security;
 
 namespace Gaji_Karyawan
 {
@@ -157,15 +159,21 @@ namespace Gaji_Karyawan
                         {
                             Console.Clear();
                             Console.WriteLine("Input Data Karyawan\n");
+                            Console.WriteLine("Masukkan Id Karyawan: ");
+                            string idkr = Convert.ToString(Console.ReadLine());
                             Console.WriteLine("Masukkan Nama Karyawan : ");
                             string Nama = Convert.ToString(Console.ReadLine());
+                            Console.WriteLine("Masukkan Nama Jabatan : ");
                             string Jabatan = Convert.ToString(Console.ReadLine());
+                            Console.WriteLine("Masukkan Alamat: ");
                             string Alamat = Convert.ToString(Console.ReadLine());
+                            Console.WriteLine("Masukkan No Tlp Karyawan: ");
                             string Notlp = Convert.ToString(Console.ReadLine());
+                            Console.WriteLine("Masukkan Gaji Karyawan: ");
                             string Gaji = Convert.ToString(Console.ReadLine());
                             try
                             {
-                                TambahDataKaryawan(Nama, Jabatan, Alamat, Notlp, Gaji, conn);
+                                TambahDataKaryawan(idkr, Nama, Jabatan, Alamat, Notlp, Gaji, conn);
                             }
                             catch
                             {
@@ -186,15 +194,16 @@ namespace Gaji_Karyawan
                     case '3':
                         {
                             Console.Clear();
-                            Console.WriteLine("Masukkan Nama yang ingin dihapus: ");
+                            Console.WriteLine("Masukkan Nama Karyawan yang ingin dihapus: ");
                             string Nama = Convert.ToString(Console.ReadLine());
                             try
                             {
-                                HapusDataKaryawan(conn);
+                                HapusDataKaryawan(Nama, conn);
                             }
-                            catch
+                            catch (Exception e)
                             {
                                 Console.WriteLine("\nAnda tidak mempunyai akses untuk mengedit");
+                                Console.WriteLine(e.ToString());
                             }
                         }
                         break;
@@ -222,14 +231,15 @@ namespace Gaji_Karyawan
             }
         }
 
-        public void TambahDataKaryawan(string Nama, string Jabatan, string Alamat, string Notlp, string Gaji, SqlConnection conn)
+        public void TambahDataKaryawan(string idkr, string Nama, string Jabatan, string Alamat, string Notlp, string Gaji, SqlConnection conn)
         {
             string str = "";
-            str = "insert into Karyawan (Nama_Karyawan, Nama_Jabatan, Alamat, No_tlp, Gaji)" +
-                "values (@nma,@nj,@a,@nt,@g)";
+            str = "insert into Karyawan (Id_Karyawan, Nama_Karyawan, Nama_Jabatan, Alamat, No_tlp, Gaji)" +
+                "values (@idk,@nma,@nj,@a,@nt,@g)";
             SqlCommand cmd = new SqlCommand(str, conn);
             cmd.CommandType = CommandType.Text;
 
+            cmd.Parameters.Add(new SqlParameter("idk", idkr));
             cmd.Parameters.Add(new SqlParameter("nma", Nama));
             cmd.Parameters.Add(new SqlParameter("nj", Jabatan));
             cmd.Parameters.Add(new SqlParameter("a", Alamat));
@@ -242,21 +252,44 @@ namespace Gaji_Karyawan
 
         public void EditDataKaryawan(SqlConnection conn)
         {
-
             Console.WriteLine("Edit Data Karyawan");
+            Console.WriteLine("Masukkan Id_Karyawan: ");
+            string Id_Karyawan = Convert.ToString(Console.ReadLine());
+            Console.WriteLine("Masukkan Nama_Karyawan: ");
+            string Nama_Karyawan = Console.ReadLine();
+
+            string str = "";
+
+            str = "Update Karyawan set Nama_Karyawan = @nma WHERE Id_Karyawan = @idk";
+            string Nama = Console.ReadLine();
             // Implementasi logika untuk mengedit data karyawan
         }
 
-        public void HapusDataKaryawan(SqlConnection conn)
+        public void HapusDataKaryawan(string Nama, SqlConnection conn)
         {
-            Console.WriteLine("Hapus Data Karyawan");
-            // Implementasi logika untuk menghapus data karyawan
+            string str = "";
+            str = "Hapus Data Karyawan where Nama_Karyawan = @nma";
+            SqlCommand cmd = new SqlCommand(str, conn);
+            cmd.CommandType = CommandType.Text;
+
+            cmd.Parameters.Add(new SqlParameter("nma", Nama));
+            cmd.ExecuteNonQuery ();
+            Console.WriteLine("Data Berhasil Dihapus");
         }
 
         public void TampilkanDataKaryawan(SqlConnection conn)
         {
-            Console.WriteLine("Tampilkan Data Karyawan");
-            // Implementasi logika untuk menampilkan data karyawan
+            SqlCommand cmd = new SqlCommand("Select Nama_Karyawan, Nama_Jabatan, Alamat, No_tlp, Gaji", conn);
+            SqlDataReader r = cmd.ExecuteReader();
+            while (r.Read())
+            {
+                for (int i = 0; i < r.FieldCount; i++)
+                {
+                    Console.WriteLine(r.GetValue(i));
+                }
+                Console.WriteLine();
+            }
+            r.Close();
         }
 
         public void JadwalKerja(SqlConnection conn)
